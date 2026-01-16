@@ -1,0 +1,12 @@
+
+node_modules/
+task-manager-backend/node_modules/
+task-manager-frontend/node_modules/
+
+
+.env
+task-manager-backend/.env
+
+
+dist/
+.DS_Store

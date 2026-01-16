@@ -1,0 +1,61 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int             @id @default(autoincrement())
+  email     String          @unique
+  password  String
+  username  String
+  projects  ProjectMember[] // Projekty, do których należy użytkownik
+  tasks     Task[]          @relation("AssignedTasks")
+}
+
+model Project {
+  id        Int             @id @default(autoincrement())
+  name      String
+  members   ProjectMember[]
+  tasks     Task[]
+  invitations Invitation[]
+}
+
+model ProjectMember {
+  id        Int     @id @default(autoincrement())
+  role      String  // OWNER, MANAGER, WORKER
+  userId    Int
+  projectId Int
+  user      User    @relation(fields: [userId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId]) // Użytkownik może mieć tylko jedną rolę w projekcie
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      String   @default("TODO") // TODO, IN_PROGRESS, BLOCKED, DONE
+  priority    String   @default("MEDIUM")
+  blockReason String?  
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  assignees   User[]   @relation("AssignedTasks")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Invitation {
+  id        Int      @id @default(autoincrement())
+  email     String
+  role      String   @default("WORKER")
+  token     String   @unique
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  status    String   @default("PENDING") // PENDING, ACCEPTED
+  createdAt DateTime @default(now())
+}
