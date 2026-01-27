@@ -1,56 +1,49 @@
-🚀 TaskMaster - Modern Project Management System
+# 🚀 TaskMaster - Modern Project Management System
 
-TaskMaster is a high-performance Full-stack application designed for team collaboration and task management. It features a modern React interface and a Node.js backend connected to a remote PostgreSQL database on Linux.
-✨ Features & Functionalities
-📋 Task Management
+**TaskMaster** is a high-performance Full-stack application designed for efficient team collaboration and task management. It features a modern React interface and a Node.js backend connected to a remote PostgreSQL database on Linux.
 
-    Full CRUD Lifecycle: Create, edit, and delete tasks with detailed descriptions and priorities.
+---
 
-    Prioritization: Visual badges for Low, Medium, and High priority.
+## ✨ Features & Functionalities
 
-    Live Filtering: Search and filter tasks by status in real-time.
+### 📋 Task Management
+* **Full CRUD Lifecycle:** Create, edit, and delete tasks with detailed descriptions and priorities.
+* **Prioritization:** Visual badges for Low, Medium, and High priority.
+* **Live Filtering:** Real-time search and status-based filtering.
 
-👥 Team Collaboration
+### 👥 Team Collaboration
+* **Email Invitations:** Secure flow via Gmail SMTP. New users automatically join projects upon registration.
+* **Role-Based Access Control (RBAC):**
+  - **Owner:** Full project control and member management.
+  - **Manager:** Create, edit, and assign tasks.
+  - **Worker:** View tasks and update statuses.
+* **Multi-Assignee Support:** Assign multiple members to a single task using tags.
 
-    Email Invitations: Secure flow via Gmail SMTP. New users automatically join projects upon registration.
+### 🔄 Advanced Workflow
+* **Dynamic Statuses:** Tasks move through To Do, In Progress, Blocked, and Done.
+* **Intelligent Blocking:** Enforced "Reason for Block" entry when a task is stalled.
 
-    Role-Based Access Control (RBAC):
+### 📊 Analytics & UX
+* **Team Workload:** Monitoring active tasks per employee (Alerts at 5+ tasks).
+* **Project Progress:** Real-time visual progress bar.
+* **Modern UI:** Smooth animations, Toast notifications, and loading spinners.
 
-        Owner: Full project control and member management.
+---
 
-        Manager: Create, edit, and assign tasks.
+## 🚀 Installation & Setup Guide
 
-        Worker: View tasks and update statuses.
+### 📋 Prerequisites
+* **Node.js** (v18 or higher)
+* **Docker** (Installed on your Linux server)
+* **Gmail Account** (with 2FA enabled for App Passwords)
 
-    Multi-Assignee: Assign multiple members to a single task using tags.
+---
 
-🔄 Advanced Workflow
+### 🚀 Step 1: Database Setup (Linux Server)
 
-    Dynamic Statuses: Tasks move through To Do, In Progress, Blocked, and Done.
+1. Create a file named `docker-compose.yml` on your server and paste this:
 
-    Intelligent Blocking: Enforced "Reason for Block" entry when a task is stalled.
-
-📊 Analytics & UX
-
-    Team Workload: Monitoring active tasks per employee (Alerts at 5+ tasks).
-
-    Project Progress: Real-time visual progress bar.
-
-    Modern UI: Smooth animations, Toast notifications, and loading spinners.
-
-🚀 Installation & Setup Guide
-📋 Prerequisites
-
-    Node.js (v18 or higher)
-
-    Docker (Installed on your Linux server)
-
-    Gmail Account (with 2FA enabled for App Passwords)
-
-🚀 Step 1: Database Setup (Linux Server)
-
-    Create a file named docker-compose.yml on your server:
-
+```yaml
 version: "3.9"
 services:
   postgres:
@@ -71,11 +64,15 @@ volumes:
 
     Run the database:
 
+code Bash
+
 docker compose up -d
 
 🚀 Step 2: Backend Configuration (/task-manager-backend)
 
     Install Dependencies:
+
+code Bash
 
 cd task-manager-backend
 npm install
@@ -83,23 +80,16 @@ npm install
     Environment Variables:
     Create a .env file in the backend folder:
 
-# Use YOUR_LINUX_IP if Node is running locally, or "postgres" if Node is in Docker
+code Env
+
 DATABASE_URL="postgresql://user:password@YOUR_LINUX_IP:5432/system_zadan?schema=public"
 JWT_SECRET="YourSuperSecretKey123"
 EMAIL_USER="your-email@gmail.com"
 EMAIL_PASS="your-16-character-app-password"
 
-    Critical: Configure CORS (index.js):
-    Ensure your backend allows requests from the frontend:
-
-const cors = require('cors');
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}));
-
     Initialize Database & Start:
 
+code Bash
 
 npx prisma migrate dev --name init
 node index.js
@@ -108,25 +98,18 @@ node index.js
 
     Install Dependencies:
 
+code Bash
+
 cd ../task-manager-frontend
 npm install
 
-    Vite Proxy Config (vite.config.js):
-    To avoid connection issues, add a proxy:
-
-export default defineConfig({
-  server: {
-    proxy: {
-      '/api': 'http://localhost:3000'
-    }
-  }
-})
-
     Launch Application:
+
+code Bash
 
 npm run dev
 
-Access at: http://localhost:5173
+The application will be live at: http://localhost:5173
 🛠️ Critical Technical Notes
 🔐 JWT Authentication
 
@@ -134,23 +117,22 @@ All requests to protected routes must include the header:
 Authorization: Bearer <your_token>
 📧 Gmail SMTP Setup
 
-    Enable 2-Factor Authentication in Google Account settings.
+    Enable 2-Factor Authentication in your Google Account.
 
-    Search for "App Passwords".
+    Search for "App Passwords" in Google settings.
 
-    Generate a password for "Mail" on "Other (Custom Name)".
-
-    Use the provided 16-character code in your .env file.
+    Generate a password for "Mail" and use the 16-character code in your .env file.
 
 🏗️ Project Structure
+code Text
 
 TaskManager/
 ├── task-manager-backend/    # Node.js + Prisma
-│   ├── routes/              # Modular API (auth, tasks, projects, dashboard)
+│   ├── routes/              # API Logic (auth, tasks, projects, dashboard)
 │   ├── prisma/              # Database Schema & Migrations
 │   └── lib/                 # Shared logic (prisma client, mailer)
 ├── task-manager-frontend/   # React + Tailwind
 │   ├── src/components/      # Reusable UI (Sidebar, TaskList, Modals)
-│   ├── src/pages/           # Main Views (Dashboard, Login)
+│   ├── src/pages/           # Views (Dashboard, Login, Register)
 │   └── src/context/         # Auth State Management
-└── docker-compose.yml       # PostgreSQL Infrastructure
+└── docker-compose.yml       # Infrastructure
