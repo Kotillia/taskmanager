@@ -61,78 +61,81 @@ services:
 
 volumes:
   pgdata:
+```
 
-    Run the database:
+Run the database:
+```bash
+    docker compose up -d
+```
 
-code Bash
+---
 
-docker compose up -d
+## 🚀 Step 2: Backend Configuration (/task-manager-backend)
 
-🚀 Step 2: Backend Configuration (/task-manager-backend)
+1. **Install Dependencies:**
 
-    Install Dependencies:
+```bash
+    cd task-manager-backend
+    npm install
+```
 
-code Bash
+2. **Environment Variables:**
+Create a `.env` file in the backend folder and fill in your credentials:
 
-cd task-manager-backend
-npm install
+```env
 
-    Environment Variables:
-    Create a .env file in the backend folder:
+    DATABASE_URL="postgresql://user:password@YOUR_LINUX_IP:5432/system_zadan?schema=public"
+    JWT_SECRET="YourSuperSecretKey123"
+    EMAIL_USER="your-email@gmail.com"
+    EMAIL_PASS="your-16-character-app-password"
+```
 
-code Env
+3. **Initialize Database & Start:**
 
-DATABASE_URL="postgresql://user:password@YOUR_LINUX_IP:5432/system_zadan?schema=public"
-JWT_SECRET="YourSuperSecretKey123"
-EMAIL_USER="your-email@gmail.com"
-EMAIL_PASS="your-16-character-app-password"
+```bash
+    npx prisma migrate dev --name init
+    node index.js
+```
 
-    Initialize Database & Start:
+---
 
-code Bash
+## 🚀 Step 3: Frontend Configuration (/task-manager-frontend)
 
-npx prisma migrate dev --name init
-node index.js
+1. **Install Dependencies:**
 
-🚀 Step 3: Frontend Configuration (/task-manager-frontend)
+```bash
+    cd ../task-manager-frontend
+    npm install
+```
 
-    Install Dependencies:
+2. **Launch Application:**
 
-code Bash
-
-cd ../task-manager-frontend
-npm install
-
-    Launch Application:
-
-code Bash
-
-npm run dev
+```bash
+    npm run dev
+```
 
 The application will be live at: http://localhost:5173
-🛠️ Critical Technical Notes
-🔐 JWT Authentication
 
-All requests to protected routes must include the header:
-Authorization: Bearer <your_token>
-📧 Gmail SMTP Setup
+---
 
-    Enable 2-Factor Authentication in your Google Account.
+## 🏗️ Project Structure
 
-    Search for "App Passwords" in Google settings.
+    TaskManager/
+    ├── task-manager-backend/    # Node.js + Prisma
+    │   ├── routes/              # Modular API (auth, tasks, projects, dashboard)
+    │   ├── prisma/              # Database Schema & Migrations
+    │   └── lib/                 # Shared logic (prisma client, mailer)
+    ├── task-manager-frontend/   # React + Tailwind
+    │   ├── src/components/      # Reusable UI (Sidebar, TaskList, Modals)
+    │   ├── src/pages/           # Main Views (Dashboard, Login)
+    │   └── src/context/         # Auth State Management
+    └── docker-compose.yml       # PostgreSQL Infrastructure
 
-    Generate a password for "Mail" and use the 16-character code in your .env file.
+---
 
-🏗️ Project Structure
-code Text
+## 🛡️ Important Security Note
+The `.env` files are excluded from the repository via `.gitignore` to protect sensitive data. Ensure you manually create them on every new machine where the project is cloned.
 
-TaskManager/
-├── task-manager-backend/    # Node.js + Prisma
-│   ├── routes/              # API Logic (auth, tasks, projects, dashboard)
-│   ├── prisma/              # Database Schema & Migrations
-│   └── lib/                 # Shared logic (prisma client, mailer)
-├── task-manager-frontend/   # React + Tailwind
-│   ├── src/components/      # Reusable UI (Sidebar, TaskList, Modals)
-│   ├── src/pages/           # Views (Dashboard, Login, Register)
-│   └── src/context/         # Auth State Management
-└── docker-compose.yml       # Infrastructure
+---
+**Developed by Illia**  
+*A comprehensive Fullstack solution for managing complex team workflows.*
