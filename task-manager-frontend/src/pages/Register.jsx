@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const Register = () => {
   const { login } = useAuth();
@@ -25,7 +26,7 @@ const Register = () => {
         navigate('/dashboard');
       
     } catch (err) {
-      alert(err.response?.data?.error || 'Something went wrong..');
+      toast.error(err.response?.data?.error || 'Something went wrong..');
     }
   };
 

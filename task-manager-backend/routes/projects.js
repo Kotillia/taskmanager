@@ -23,6 +23,36 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 
+// USUNIĘCIE PROJEKTU
+
+
+router.delete('/:id', authenticateToken, async (req, res) => {
+  const projectId = parseInt(req.params.id);
+
+  try {
+  
+    const membership = await prisma.projectMember.findUnique({
+      where: { userId_projectId: { userId: req.user.userId, projectId } }
+    });
+
+    if (!membership || membership.role !== 'OWNER') {
+      return res.status(403).json({ error: "Only the Owner can delete the project." });
+    }
+
+    
+    await prisma.task.deleteMany({ where: { projectId } });
+    await prisma.projectMember.deleteMany({ where: { projectId } });
+    await prisma.invitation.deleteMany({ where: { projectId } });
+    
+    
+    await prisma.project.delete({ where: { id: projectId } });
+
+    res.status(200).json({ message: "Project deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete project" });
+  }
+});
+
 // ZAPROSZENIE UŻYTKOWNIKA
 
 
@@ -70,7 +100,7 @@ router.get('/accept-invitation', async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email: invitation.email }});
 
     if (!user) {
-        return res.redirect(`http://localhost:3000/auth/register?email=${invitation.email}&token=${token}`);
+        return res.redirect(`http://localhost:5173/register?email=${invitation.email}&token=${token}`);
     }
 
     await prisma.projectMember.create({
@@ -86,17 +116,127 @@ router.get('/accept-invitation', async (req, res) => {
 
 // ZARZĄDZANIE ROLAMI
 
-router.patch('/:id/members/:userId', authenticateToken, async (req, res) => {
-    const updateMember = await prisma.projectMember.update({
+router.patch('/:projectId/members/:userId/role', authenticateToken, async (req, res) => {
+  const { projectId, userId } = req.params;
+  const { role } = req.body; 
+
+  try {
+    
+    const requester = await prisma.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId: req.user.userId,
+          projectId: parseInt(projectId)
+        }
+      }
+    });
+
+    if (!requester || requester.role !== 'OWNER') {
+      return res.status(403).json({ error: "Only the Owner can change roles." });
+    }
+
+    
+    const targetMember = await prisma.projectMember.findUnique({
         where: {
             userId_projectId: {
-                userId: parseInt(req.params.userId),
-                projectId: parseInt(req.params.id)
+                userId: parseInt(userId),
+                projectId: parseInt(projectId)
             }
-        },
-        data: { role: req.body.role }
+        }
     });
-    res.json(updateMember);
-})
+
+    if (targetMember.role === 'OWNER') {
+        return res.status(400).json({ error: "Cannot change Owner's role." });
+    }
+
+   
+    const updatedMember = await prisma.projectMember.update({
+      where: {
+        userId_projectId: {
+          userId: parseInt(userId),
+          projectId: parseInt(projectId)
+        }
+      },
+      data: { role: role }
+    });
+
+    res.json({ message: "Role updated successfully", member: updatedMember });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to update role." });
+  }
+});
+
+
+// POBRANIE PROJEKTÓW
+
+router.get('/my', authenticateToken, async (req, res) => {
+  const projects = await prisma.project.findMany({
+    where: {
+      members: { some: { userId: req.user.userId } }
+    }
+  });
+  res.json(projects);
+});
+
+//LISTA CZŁONKÓW
+
+router.get('/:id/members', authenticateToken, async (req, res) => {
+  try {
+    const members = await prisma.projectMember.findMany({
+      where: { projectId: parseInt(req.params.id) },
+      include: {
+        user: {
+          select: { id: true, username: true, email: true }
+        }
+      }
+    });
+    res.json(members);
+  } catch (error) {
+    res.status(500).json({ error: "Błąd pobierania członków" });
+  }
+});
+
+// USUNIĘCIE CZŁONKA Z PROJEKTU
+
+router.delete('/:projectId/members/:userId', authenticateToken, async (req, res) => {
+  const { projectId, userId } = req.params;
+
+  try {
+    
+    const requester = await prisma.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId: req.user.userId,
+          projectId: parseInt(projectId)
+        }
+      }
+    });
+
+    if (!requester || requester.role !== 'OWNER') {
+      return res.status(403).json({ error: "Only the Project Owner can remove members." });
+    }
+
+
+    if (parseInt(userId) === req.user.userId) {
+      return res.status(400).json({ error: "You cannot remove yourself from your own project." });
+    }
+
+
+    await prisma.projectMember.delete({
+      where: {
+        userId_projectId: {
+          userId: parseInt(userId),
+          projectId: parseInt(projectId)
+        }
+      }
+    });
+
+    res.json({ message: "Member removed from project." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to remove member." });
+  }
+});
 
 module.exports = router;

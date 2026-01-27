@@ -3,10 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <Router>
+        <Toaster position="top-right" />
       <Routes>
         {/* LOGOWANIE */}
         <Route path="/login" element={<Login />} />

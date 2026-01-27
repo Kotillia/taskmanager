@@ -3,81 +3,82 @@ const router = express.Router();
 const prisma = require('../lib/prisma');
 const authenticateToken = require('../middleware/authMiddleware');
 
-// OBCIĄŻENIE ZESPOŁU
 
 router.get('/:projectId/workload', authenticateToken, async (req, res) => {
-
+  const projectId = parseInt(req.params.projectId);
+  
+  if (isNaN(projectId)) {
+    return res.status(400).json({ error: "Invalid Project ID" });
+  }
 
   try {
-
-  const workload = await prisma.user.findMany({
-    where: { 
-      projects: { 
-        some: { 
-          projectId: parseInt(req.params.projectId) 
-        } 
-      } 
-    },
-    select: {
-      id: true,
-      username: true,
-      _count: { 
-        select: {
-          where: { 
+    const workload = await prisma.user.findMany({
+      where: {
+        projects: { some: { projectId: projectId } }
+      },
+      select: {
+        id: true,
+        username: true,
+        _count: {
+          select: {
             tasks: { 
-              some: { 
-                projectId: parseInt(req.params.projectId), 
-                status: { not: 'DONE' } 
-              } 
-            } 
+              where: {
+                projectId: projectId,
+                status: { not: 'DONE' }
+              }
+            }
           }
         }
       }
-    }
-  });
+    });
 
-  const result = workload.map(user => ({
-    userId: user.id,
-    username: user.username,
-    activeTasksCount: user._count.tasks,
-    isOverloaded: user._count.tasks > 5
-  }));
-  res.json({message:"Wysyłanie obciążenia..", result});
-   } catch (e) {
-     res.status(500).json({message:"Something went wrong..." +  e.message})
-   }
+    const result = workload.map(user => ({
+      userId: user.id,
+      username: user.username,
+      activeTasksCount: user._count.tasks,
+      isOverloaded: user._count.tasks > 5
+    }));
+
+    res.json(result);
+  } catch (e) {
+    console.error("DASHBOARD WORKLOAD ERROR:", e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 
-// WYKRES POSTĘPU
-
 router.get('/:projectId/progress', authenticateToken, async (req, res) => {
+  const projectId = parseInt(req.params.projectId);
 
+  if (isNaN(projectId)) {
+    return res.status(400).json({ error: "Invalid Project ID" });
+  }
 
   try {
+    const stats = await prisma.task.groupBy({
+      by: ['status'],
+      where: { projectId: projectId },
+      _count: { id: true }
+    });
 
-  const stats = await prisma.task.groupBy({
+    const totalTasks = await prisma.task.count({
+      where: { projectId: projectId }
+    });
 
-    by: ['status'],
-    where: { projectId: parseInt(req.params.projectId) },
-    _count: { id: true }
-
-  });
-
-  const totalTasks = await prisma.tasks.count({
-    where: { projectId: projectId}
-  });
-
-  res.json({
-    totalTasks,
-    stats: stats.map(s => ({
+    
+    const formattedStats = stats.map(s => ({
       status: s.status,
       count: s._count.id,
       percentage: totalTasks > 0 ? ((s._count.id / totalTasks) * 100).toFixed(2) : 0
-    }))
-  });
+    }));
+
+    res.json({
+      totalTasks,
+      stats: formattedStats
+    });
   } catch (e) {
-     res.status(500).json({message:"Something went wrong..." +  e.message})
+    console.error("DASHBOARD PROGRESS ERROR:", e);
+    res.status(500).json({ error: e.message });
   }
 });
 

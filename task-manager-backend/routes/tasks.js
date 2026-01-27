@@ -27,21 +27,30 @@ router.post ('/', authenticateToken, async (req, res) => {
 
 // EDYCJA
 
-router.put('/:id', async (req, res) => {
-    const {id} = req.params;
-    const updatedTask = await prisma.task.update({
-        where: { id: parseInt(id)},
-        data: req.body
+router.put('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { title, description, priority } = req.body;
+    const task = await prisma.task.update({
+      where: { id: parseInt(req.params.id) },
+      data: { title, description, priority }
     });
-    res.json(updatedTask);
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update task" });
+  }
 });
 
 // USUNIĘCIE
 
-router.delete('/:id', async (req, res) => {
-    const { id } = req.params;
-    await prisma.task.delete({ where: {id: parseInt(id)}});
-    res.json({message: "Task deleted"});
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    await prisma.task.delete({
+      where: { id: parseInt(req.params.id) }
+    });
+    res.json({ message: "Task deleted" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete task" });
+  }
 });
 
 

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext'; 
 import { LogIn } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ const Login = () => {
      
       login(res.data.token, res.data.user);
       
-      alert('Zalogowano pomyślnie!');
+      toast.success('Zalogowano pomyślnie!');
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong.. Is everything is correct?');
