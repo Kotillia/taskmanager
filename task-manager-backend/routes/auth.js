@@ -67,7 +67,7 @@ router.post('/register', async (req, res) => {
             user:  {id: user.id, username: user.username, email: user.email}
         });
         } catch (e) {
-            res.status(400).json({ error: "Regestration failed." + e.message});
+            res.status(400).json({ error: "Regestration failed."});
         }
 
 });

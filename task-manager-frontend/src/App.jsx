@@ -4,6 +4,21 @@ import Login from './pages/login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import { Toaster } from 'react-hot-toast';
+import { useAuth } from './context/AuthContext';
+
+
+
+const PrivateRoute = ({ children }) => {
+  const { token } = useAuth();
+  
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
 
 function App() {
   return (
@@ -20,7 +35,9 @@ function App() {
         <Route path="*" element={<Navigate to="/login" />} />
 
         {/* DASHBOARD*/}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={
+          <PrivateRoute><Dashboard /></PrivateRoute>
+          } />
       </Routes>
     </Router>
   );

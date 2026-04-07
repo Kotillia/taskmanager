@@ -12,7 +12,7 @@ model User {
   email     String          @unique
   password  String
   username  String
-  projects  ProjectMember[] // Projekty, do których należy użytkownik
+  projects  ProjectMember[]
   tasks     Task[]          @relation("AssignedTasks")
 }
 
@@ -26,20 +26,20 @@ model Project {
 
 model ProjectMember {
   id        Int     @id @default(autoincrement())
-  role      String  // OWNER, MANAGER, WORKER
+  role      String  
   userId    Int
   projectId Int
   user      User    @relation(fields: [userId], references: [id])
   project   Project @relation(fields: [projectId], references: [id])
 
-  @@unique([userId, projectId]) // Użytkownik może mieć tylko jedną rolę w projekcie
+  @@unique([userId, projectId])
 }
 
 model Task {
   id          Int      @id @default(autoincrement())
   title       String
   description String?
-  status      String   @default("TODO") // TODO, IN_PROGRESS, BLOCKED, DONE
+  status      String   @default("TODO")
   priority    String   @default("MEDIUM")
   blockReason String?  
   projectId   Int
@@ -56,6 +56,6 @@ model Invitation {
   token     String   @unique
   projectId Int
   project   Project  @relation(fields: [projectId], references: [id])
-  status    String   @default("PENDING") // PENDING, ACCEPTED
+  status    String   @default("PENDING")
   createdAt DateTime @default(now())
 }
